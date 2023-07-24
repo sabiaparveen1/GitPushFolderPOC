@@ -18,8 +18,8 @@ public class CreateNewBranchAndPush {
 
         String localPath = "/home/knoldus/Documents/POC";
         String remoteRepoUrl = "https://github.com/sabiaparveen1/BonusforPOC.git";
-        String username = "sabiaparveen1";
-        String password = "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";
+        String username = "";
+        String password = "";
         String newBranchName = "sabia-test";
         String folderPath = "/home/knoldus/Documents/POC";
 
