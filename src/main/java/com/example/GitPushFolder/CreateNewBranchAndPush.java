@@ -1,28 +1,26 @@
 package com.example.GitPushFolder;
 
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.PushCommand;
+import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
-import org.eclipse.jgit.transport.RefSpec;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.eclipse.jgit.transport.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 public class CreateNewBranchAndPush {
 
     public static void main(String[] args) {
 
-        String localPath = "/home/knoldus/Documents/POC";
+        String localPath = "/home/knoldus/Documents/BonusforPOC";
         String remoteRepoUrl = "https://github.com/sabiaparveen1/BonusforPOC.git";
         String username = "";
         String password = "";
-        String newBranchName = "sabia-test";
-        String folderPath = "/home/knoldus/Documents/POC";
-
+        String newBranchName = "sabia-test-3";
+        String folderPath = "/home/knoldus/Documents/BonusforPOC";
 
         try {
 
@@ -63,28 +61,39 @@ public class CreateNewBranchAndPush {
                         .setName(newBranchName)
                         .call();
             }
+            CheckoutCommand checkoutCommand = git.checkout();
+            checkoutCommand.setName(newBranchName).call();
 
-            git.checkout()
-                    .setName(newBranchName)
-                    .call();
-
+            // Stage the changes for deletion
+            AddCommand addCommand = git.add();
+            addCommand.addFilepattern(".").setUpdate(true).call();
             git.add().addFilepattern(".").addFilepattern(folderPath).call();
 
+
             // Commit the changes
-            git.commit()
-                    .setMessage("changes committed !!!!!!!! " + newBranchName)
-                    .call();
+            CommitCommand commitCommand = git.commit();
+            commitCommand.setMessage("Updated files").call();
 
             // Push to the new branch
             PushCommand pushCommand = git.push();
-            pushCommand.setRemote("origin");
-            pushCommand.setRefSpecs(new RefSpec(newBranchName));
+            pushCommand.setRemote(remoteRepoUrl);
+
+
             if (username != null && password != null) {
                 pushCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(username, password));
             }
-            pushCommand.call();
 
-            System.out.println("Pushed code to branch: " + newBranchName);
+            Iterable<PushResult> pushResults = pushCommand.call();
+            for (PushResult pushResult : pushResults) {
+                for (RemoteRefUpdate remoteRefUpdate : pushResult.getRemoteUpdates()) {
+                    if (remoteRefUpdate.getStatus() == RemoteRefUpdate.Status.OK) {
+                        System.out.println("Pushed to " + remoteRefUpdate.getRemoteName());
+                    } else {
+                        System.err.println("Failed to push to " + remoteRefUpdate.getRemoteName()
+                                + ": " + remoteRefUpdate.getStatus());
+                    }
+                }
+            }
 
             git.close();
         } catch (GitAPIException | IOException e) {
